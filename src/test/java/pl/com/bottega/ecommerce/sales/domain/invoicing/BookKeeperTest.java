@@ -87,4 +87,33 @@ class BookKeeperTest {
         MatcherAssert.assertThat(invoice.getItems().size(), Matchers.is(2));
     }
 
+    @Test
+    public void calculateTaxCallCountForTwoProducts() {
+
+        Money money = new Money(1);
+        Money money2 = new Money(2);
+
+        when(taxPolicy.calculateTax(ProductType.FOOD, money))
+                .thenReturn(new Tax(new Money(1), "a"));
+        when(taxPolicy.calculateTax(ProductType.STANDARD, money2))
+                .thenReturn(new Tax(new Money(1), "a"));
+
+        ProductData productData1 = mock(ProductData.class);
+        when(productData1.getType()).thenReturn(ProductType.FOOD);
+        ProductData productData2 = mock(ProductData.class);
+        when(productData2.getType()).thenReturn(ProductType.STANDARD);
+
+        RequestItem requestItem1 = new RequestItem(productData1, 1, money);
+        invoiceRequest.add(requestItem1);
+        RequestItem requestItem2 = new RequestItem(productData2, 1, money2);
+        invoiceRequest.add(requestItem2);
+
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        Mockito.verify(taxPolicy, Mockito.times(1))
+                .calculateTax(ProductType.FOOD, money);
+        Mockito.verify(taxPolicy, Mockito.times(1))
+                .calculateTax(ProductType.STANDARD, money2);
+    }
+
 }
