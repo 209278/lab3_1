@@ -70,4 +70,21 @@ class BookKeeperTest {
                 .calculateTax(ProductType.FOOD, money);
     }
 
+    @Test
+    public void invoiceRequestWithTwoProducts() {
+
+        Money money = new Money(1);
+
+        RequestItem requestItem1 = new RequestItem(productData, 1, money);
+        RequestItem requestItem2 = new RequestItem(productData, 1, money);
+        invoiceRequest.add(requestItem1);
+        invoiceRequest.add(requestItem2);
+
+        when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class)))
+                .thenReturn(new Tax(new Money(1), "a"));
+
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        MatcherAssert.assertThat(invoice.getItems().size(), Matchers.is(2));
+    }
+
 }
