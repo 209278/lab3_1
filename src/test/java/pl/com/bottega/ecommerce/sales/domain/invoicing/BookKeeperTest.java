@@ -4,6 +4,7 @@ import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.ProductData;
@@ -47,6 +48,26 @@ class BookKeeperTest {
 
         Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
         MatcherAssert.assertThat(invoice.getItems().size(), Matchers.is(1));
+    }
+
+    @Test
+    public void calculateTaxCallCountForOneProduct() {
+
+        Money money = new Money(1);
+
+        when(taxPolicy.calculateTax(ProductType.FOOD, money))
+                .thenReturn(new Tax(new Money(1), "a"));
+
+        ProductData productData1 = mock(ProductData.class);
+        when(productData1.getType()).thenReturn(ProductType.FOOD);
+
+        RequestItem requestItem = new RequestItem(productData1, 1, money);
+        invoiceRequest.add(requestItem);
+
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+
+        Mockito.verify(taxPolicy, Mockito.times(1))
+                .calculateTax(ProductType.FOOD, money);
     }
 
 }
