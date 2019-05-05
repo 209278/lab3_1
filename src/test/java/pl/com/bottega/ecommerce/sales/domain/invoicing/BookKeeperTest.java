@@ -122,4 +122,11 @@ class BookKeeperTest {
         MatcherAssert.assertThat(invoice.getItems(), Matchers.empty());
     }
 
+    @Test
+    public void calculateTaxCallCountForEmptyInvoiceRequest() {
+        bookKeeper.issuance(invoiceRequest, taxPolicy);
+        Mockito.verify(taxPolicy, Mockito.times(0))
+                .calculateTax(any(ProductType.class), any(Money.class));
+    }
+
 }
