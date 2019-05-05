@@ -116,4 +116,10 @@ class BookKeeperTest {
                 .calculateTax(ProductType.STANDARD, money2);
     }
 
+    @Test
+    public void emptyInvoiceRequest() {
+        Invoice invoice = bookKeeper.issuance(invoiceRequest, taxPolicy);
+        MatcherAssert.assertThat(invoice.getItems(), Matchers.empty());
+    }
+
 }
