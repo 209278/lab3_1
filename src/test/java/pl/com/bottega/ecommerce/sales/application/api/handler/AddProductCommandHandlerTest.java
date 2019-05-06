@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
 import pl.com.bottega.ecommerce.sales.application.api.command.AddProductCommand;
+import pl.com.bottega.ecommerce.sales.domain.client.Client;
 import pl.com.bottega.ecommerce.sales.domain.client.ClientRepository;
 import pl.com.bottega.ecommerce.sales.domain.equivalent.SuggestionService;
 import pl.com.bottega.ecommerce.sales.domain.productscatalog.Product;
@@ -14,8 +15,10 @@ import pl.com.bottega.ecommerce.sales.domain.reservation.Reservation;
 import pl.com.bottega.ecommerce.sales.domain.reservation.ReservationRepository;
 import pl.com.bottega.ecommerce.sharedkernel.Money;
 import pl.com.bottega.ecommerce.system.application.SystemContext;
+import pl.com.bottega.ecommerce.system.application.SystemUser;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 
@@ -27,24 +30,29 @@ class AddProductCommandHandlerTest {
     ClientRepository clientRepository = mock(ClientRepository.class);
     SystemContext systemContext = mock(SystemContext.class);
     Reservation reservation = mock(Reservation.class);
+    SystemUser systemUser = mock(SystemUser.class);
 
     Product product = mock(Product.class);
-//    Id id;
-//    Money money = new Money(1);
-//    String name = "test";
-//    ProductType productType = ProductType.FOOD;
+    Product equivalentProduct = mock(Product.class);
+    Id id;
+    Client client;
 
     AddProductCommandHandler addProductCommandHandler;
 
     @BeforeEach
     public void init(){
-//        id = Id.generate();
-//        product = new Product(id, money, name, productType);
+        id = Id.generate();
+        client = new Client();
 
         Mockito.when(reservationRepository.load(any()))
                 .thenReturn(reservation);
         Mockito.when(productRepository.load(any()))
                 .thenReturn(product);
+        Mockito.when(suggestionService.suggestEquivalent(eq(product), any(Client.class)))
+                .thenReturn(equivalentProduct);
+        Mockito.when(systemContext.getSystemUser()).thenReturn(systemUser);
+        Mockito.when(systemUser.getClientId()).thenReturn(id);
+        Mockito.when(clientRepository.load(id)).thenReturn(client);
 
         addProductCommandHandler =
                 new AddProductCommandHandler(reservationRepository, productRepository, suggestionService,
@@ -57,6 +65,14 @@ class AddProductCommandHandlerTest {
         AddProductCommand command1 = new AddProductCommand(new Id("1"), new Id("1"), 1);
         addProductCommandHandler.handle(command1);
         Mockito.verify(reservation, times(1)).add(product, 1);
+    }
+
+    @Test
+    public void reservationAddEquivalentProduct(){
+        Mockito.when(product.isAvailable()).thenReturn(false);
+        AddProductCommand command1 = new AddProductCommand(new Id("1"), new Id("1"), 1);
+        addProductCommandHandler.handle(command1);
+        Mockito.verify(reservation, times(1)).add(equivalentProduct, 1);
     }
 
 }
