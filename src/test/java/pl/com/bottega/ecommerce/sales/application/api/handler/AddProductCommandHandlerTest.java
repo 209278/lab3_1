@@ -32,10 +32,10 @@ class AddProductCommandHandlerTest {
     Reservation reservation = mock(Reservation.class);
     SystemUser systemUser = mock(SystemUser.class);
 
-    Product product = mock(Product.class);
-    Product equivalentProduct = mock(Product.class);
     Id id;
     Client client;
+    Product product;
+    Product equivalentProduct;
 
     AddProductCommandHandler addProductCommandHandler;
 
@@ -43,6 +43,9 @@ class AddProductCommandHandlerTest {
     public void init(){
         id = Id.generate();
         client = new Client();
+
+        product = new Product(Id.generate(), new Money(1), "product", ProductType.FOOD);
+        equivalentProduct = new Product(Id.generate(), new Money(2), "equivalentProduct", ProductType.FOOD);
 
         Mockito.when(reservationRepository.load(any()))
                 .thenReturn(reservation);
@@ -61,7 +64,6 @@ class AddProductCommandHandlerTest {
 
     @Test
     public void reservationOneCall(){
-        Mockito.when(product.isAvailable()).thenReturn(true);
         AddProductCommand command1 = new AddProductCommand(new Id("1"), new Id("1"), 1);
         addProductCommandHandler.handle(command1);
         Mockito.verify(reservation, times(1)).add(product, 1);
@@ -69,7 +71,7 @@ class AddProductCommandHandlerTest {
 
     @Test
     public void reservationAddEquivalentProduct(){
-        Mockito.when(product.isAvailable()).thenReturn(false);
+        product.markAsRemoved();
         AddProductCommand command1 = new AddProductCommand(new Id("1"), new Id("1"), 1);
         addProductCommandHandler.handle(command1);
         Mockito.verify(reservation, times(1)).add(equivalentProduct, 1);
