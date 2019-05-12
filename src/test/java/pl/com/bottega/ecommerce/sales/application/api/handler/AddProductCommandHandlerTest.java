@@ -44,8 +44,19 @@ class AddProductCommandHandlerTest {
         id = Id.generate();
         client = new Client();
 
-        product = new Product(Id.generate(), new Money(1), "product", ProductType.FOOD);
-        equivalentProduct = new Product(Id.generate(), new Money(2), "equivalentProduct", ProductType.FOOD);
+        product = new ProductBuilder()
+                .setId(Id.generate())
+                .setMoney(new Money(1))
+                .setName("product")
+                .setProductType(ProductType.FOOD)
+                .build();
+
+        equivalentProduct = new ProductBuilder()
+                .setId(Id.generate())
+                .setMoney(new Money(2))
+                .setName("equivalentProduct")
+                .setProductType(ProductType.FOOD)
+                .build();
 
         Mockito.when(reservationRepository.load(any()))
                 .thenReturn(reservation);
